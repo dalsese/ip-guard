@@ -9,6 +9,8 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.Collection;
 import org.eclipse.jgit.transport.PreUploadHook;
+import org.eclipse.jgit.transport.PreUploadHookChain;
+import java.util.Arrays;
 import org.eclipse.jgit.transport.ServiceMayNotContinueException;
 import org.eclipse.jgit.transport.UploadPack;
 
@@ -25,8 +27,17 @@ class IpGuardUploadPackInitializer implements UploadPackInitializer {
 
   @Override
   public void init(Project.NameKey project, UploadPack up) {
-    up.setPreUploadHook(new GuardHook(project));
+    PreUploadHook guard = new GuardHook(project);
+    PreUploadHook existing = up.getPreUploadHook();
+
+    if (existing == null || existing == PreUploadHook.NULL) {
+      up.setPreUploadHook(guard);
+    } else {
+      // 우리 훅이 먼저 실행되어 "차단 우선"이 되도록 순서: [guard, existing]
+      up.setPreUploadHook(PreUploadHookChain.newChain(Arrays.asList(guard, existing)));
+    }
   }
+
 
   private class GuardHook implements PreUploadHook {
     private final Project.NameKey project;
