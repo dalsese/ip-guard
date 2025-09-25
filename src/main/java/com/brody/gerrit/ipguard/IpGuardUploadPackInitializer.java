@@ -8,7 +8,6 @@ import com.google.inject.Provider;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.Collection;
-import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.transport.PreUploadHook;
 import org.eclipse.jgit.transport.ServiceMayNotContinueException;
 import org.eclipse.jgit.transport.UploadPack;
@@ -25,7 +24,7 @@ class IpGuardUploadPackInitializer implements UploadPackInitializer {
   }
 
   @Override
-  public void init(UploadPack up, Project.NameKey project, Repository repo) {
+  public void init(Project.NameKey project, UploadPack up) {
     up.setPreUploadHook(new GuardHook(project));
   }
 
@@ -43,17 +42,13 @@ class IpGuardUploadPackInitializer implements UploadPackInitializer {
     @Override
     public void onEndNegotiateRound(UploadPack up,
         Collection<? extends org.eclipse.jgit.lib.ObjectId> wants, int cntCommon, int cntNotFound, boolean ready)
-        throws ServiceMayNotContinueException {
-      // no-op
-    }
+        throws ServiceMayNotContinueException { /* no-op */ }
 
     @Override
     public void onSendPack(UploadPack up,
         Collection<? extends org.eclipse.jgit.lib.ObjectId> wants,
         Collection<? extends org.eclipse.jgit.lib.ObjectId> haves)
-        throws ServiceMayNotContinueException {
-      // no-op
-    }
+        throws ServiceMayNotContinueException { /* no-op */ }
 
     private void check() throws ServiceMayNotContinueException {
       String ip = ClientIpContext.get();
