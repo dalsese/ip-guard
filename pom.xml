@@ -14,18 +14,18 @@
   <maven.compiler.release>11</maven.compiler.release>
   <gerrit.api.version>3.5.12</gerrit.api.version>
  </properties>
- <repositories>
+<repositories>
   <repository>
-   <id>gerrit-api-releases</id>
-   <url>https://gerrit-api.storage.googleapis.com/release/</url>
-   <releases><enabled>true</enabled></releases>
-   <snapshots><enabled>false</enabled></snapshots>
+    <id>gerrit-api-releases</id>
+    <url>https://gerrit-api.storage.googleapis.com/release/</url>
+    <releases><enabled>true</enabled></releases>
+    <snapshots><enabled>false</enabled></snapshots>
   </repository>
   <repository>
-   <id>gerrit-api-snapshots</id>
-   <url>https://gerrit-api.storage.googleapis.com/snapshot/</url>
-   <releases><enabled>false</enabled></releases>
-   <snapshots><enabled>true</snapshots>
+    <id>gerrit-api-snapshots</id>
+    <url>https://gerrit-api.storage.googleapis.com/snapshot/</url>
+    <releases><enabled>false</enabled></releases>
+    <snapshots><enabled>true</enabled></snapshots>
   </repository>
  </repositories>
  <dependencies>
