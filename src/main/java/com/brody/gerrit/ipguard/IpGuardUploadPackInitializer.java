@@ -8,9 +8,9 @@ import com.google.inject.Provider;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.Collection;
+import java.util.Arrays;
 import org.eclipse.jgit.transport.PreUploadHook;
 import org.eclipse.jgit.transport.PreUploadHookChain;
-import java.util.Arrays;
 import org.eclipse.jgit.transport.ServiceMayNotContinueException;
 import org.eclipse.jgit.transport.UploadPack;
 
@@ -28,40 +28,47 @@ class IpGuardUploadPackInitializer implements UploadPackInitializer {
   @Override
   public void init(Project.NameKey project, UploadPack up) {
     PreUploadHook guard = new GuardHook(project);
-    PreUploadHook existing = up.getPreUploadHook();
 
+    PreUploadHook existing = up.getPreUploadHook();
     if (existing == null || existing == PreUploadHook.NULL) {
       up.setPreUploadHook(guard);
     } else {
-      // 우리 훅이 먼저 실행되어 "차단 우선"이 되도록 순서: [guard, existing]
+      // 우리 훅을 먼저 실행(차단 우선) → 통과 시 기존 훅 실행
       up.setPreUploadHook(PreUploadHookChain.newChain(Arrays.asList(guard, existing)));
     }
   }
-
 
   private class GuardHook implements PreUploadHook {
     private final Project.NameKey project;
     GuardHook(Project.NameKey p) { this.project = p; }
 
     @Override
-    public void onBeginNegotiateRound(UploadPack up,
-        Collection<? extends org.eclipse.jgit.lib.ObjectId> wants, int cntOffered)
-        throws ServiceMayNotContinueException {
-      check();
+    public void onBeginNegotiateRound(
+        UploadPack up,
+        Collection<? extends org.eclipse.jgit.lib.ObjectId> wants,
+        int cntOffered) throws ServiceMayNotContinueException {
+      check(up);
     }
 
     @Override
-    public void onEndNegotiateRound(UploadPack up,
-        Collection<? extends org.eclipse.jgit.lib.ObjectId> wants, int cntCommon, int cntNotFound, boolean ready)
-        throws ServiceMayNotContinueException { /* no-op */ }
+    public void onEndNegotiateRound(
+        UploadPack up,
+        Collection<? extends org.eclipse.jgit.lib.ObjectId> wants,
+        int cntCommon, int cntNotFound, boolean ready)
+        throws ServiceMayNotContinueException {
+      // no-op
+    }
 
     @Override
-    public void onSendPack(UploadPack up,
+    public void onSendPack(
+        UploadPack up,
         Collection<? extends org.eclipse.jgit.lib.ObjectId> wants,
         Collection<? extends org.eclipse.jgit.lib.ObjectId> haves)
-        throws ServiceMayNotContinueException { /* no-op */ }
+        throws ServiceMayNotContinueException {
+      // no-op
+    }
 
-    private void check() throws ServiceMayNotContinueException {
+    private void check(UploadPack up) throws ServiceMayNotContinueException {
       String ip = ClientIpContext.get();
       if ((ip == null || ip.isEmpty()) && remotePeer != null) {
         try {
