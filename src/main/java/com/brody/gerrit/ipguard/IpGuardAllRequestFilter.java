@@ -9,11 +9,10 @@ import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 @Singleton
-public class IpGuardAllRequestFilter implements AllRequestFilter {
+public class IpGuardAllRequestFilter extends AllRequestFilter {
 
   @Override
   public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
@@ -62,4 +61,3 @@ public class IpGuardAllRequestFilter implements AllRequestFilter {
     }
     return ip;
   }
-}
