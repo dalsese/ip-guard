@@ -8,10 +8,10 @@ import com.google.inject.Provider;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.Collection;
+import java.util.Arrays;
 import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.jgit.transport.PreReceiveHook;
 import org.eclipse.jgit.transport.PreReceiveHookChain;
-import java.util.Arrays;
 import org.eclipse.jgit.transport.ReceiveCommand;
 import org.eclipse.jgit.transport.ReceivePack;
 
@@ -28,18 +28,13 @@ class IpGuardReceivePackInitializer implements ReceivePackInitializer {
 
   @Override
   public void init(Project.NameKey project, ReceivePack rp) {
-    PreReceiveHook guard = (rpIgnored, commands) -> {
-      // 기존 GuardHook.check() 로직과 동일 (차단 시 commands 전체 REJECT 세팅)
-      String ip = /* ... 기존 코드 ... */;
-      boolean allowed = policy.isAllowed(project, "push", ip);
-      // ... 기존 로깅/거부 처리 ...
-    };
-  
+    PreReceiveHook guard = new GuardHook(project, rp);
+
     PreReceiveHook existing = rp.getPreReceiveHook();
     if (existing == null || existing == PreReceiveHook.NULL) {
       rp.setPreReceiveHook(guard);
     } else {
-      // 푸시도 "차단 우선" 순서로 체인 생성
+      // 우리 훅을 먼저 실행(차단 우선) → 통과 시 기존 훅 실행
       rp.setPreReceiveHook(PreReceiveHookChain.newChain(Arrays.asList(guard, existing)));
     }
   }
@@ -47,10 +42,14 @@ class IpGuardReceivePackInitializer implements ReceivePackInitializer {
   private class GuardHook implements PreReceiveHook {
     private final Project.NameKey project;
     private final ReceivePack rp;
-    GuardHook(Project.NameKey p, ReceivePack rp) { this.project = p; this.rp = rp; }
+
+    GuardHook(Project.NameKey p, ReceivePack rp) {
+      this.project = p;
+      this.rp = rp;
+    }
 
     @Override
-    public void onPreReceive(ReceivePack rpIgnored, Collection<ReceiveCommand> commands) {
+    public void onPreReceive(ReceivePack ignored, Collection<ReceiveCommand> commands) {
       String ip = ClientIpContext.get();
       if ((ip == null || ip.isEmpty()) && remotePeer != null) {
         try {
@@ -73,7 +72,8 @@ class IpGuardReceivePackInitializer implements ReceivePackInitializer {
 
       if (!allowed) {
         for (ReceiveCommand c : commands) {
-          c.setResult(ReceiveCommand.Result.REJECTED_OTHER_REASON,
+          c.setResult(
+              ReceiveCommand.Result.REJECTED_OTHER_REASON,
               "ip-guard: push not allowed from IP " + ip);
         }
         audit.record(false, "push", project.get(), userName, ip, "blocked by ip-guard");
