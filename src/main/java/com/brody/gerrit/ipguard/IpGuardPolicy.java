@@ -17,15 +17,19 @@ class IpGuardPolicy {
   }
 
   boolean isAllowed(Project.NameKey project, String op, String clientIp) {
-    if (Boolean.getBoolean("ipguard.smoke")) return false; // deny-all for smoke test
-    String ip = IpMatcher.normalize(clientIp);
+    if (Boolean.getBoolean("ipguard.smoke")) {
+      return false; // deny-all in smoke mode
+    }
 
+    String ip = IpMatcher.normalize(clientIp);
     PluginConfig pc = cfgFactory.getFromProjectConfig(project, PLUGIN_NAME);
+
     String[] rules;
     switch (op) {
       case "push":
         rules = pc.getStringList("allowPush");
         break;
+
       case "clone/fetch":
       default:
         rules = pc.getStringList("allowClone");
@@ -34,7 +38,16 @@ class IpGuardPolicy {
         }
         break;
     }
-    if (rules == null || rules.length == 0) return false; // fail-closed
-    for (String r : rules) if (IpMatcher.match(ip, r)) return true;
+
+    if (rules == null || rules.length == 0) {
+      return false; // fail-closed when no policy
+    }
+
+    for (String r : rules) {
+      if (IpMatcher.match(ip, r)) {
+        return true;
+      }
+    }
     return false;
   }
+}
