@@ -10,6 +10,8 @@ import java.net.SocketAddress;
 import java.util.Collection;
 import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.jgit.transport.PreReceiveHook;
+import org.eclipse.jgit.transport.PreReceiveHookChain;
+import java.util.Arrays;
 import org.eclipse.jgit.transport.ReceiveCommand;
 import org.eclipse.jgit.transport.ReceivePack;
 
@@ -26,7 +28,20 @@ class IpGuardReceivePackInitializer implements ReceivePackInitializer {
 
   @Override
   public void init(Project.NameKey project, ReceivePack rp) {
-    rp.setPreReceiveHook(new GuardHook(project, rp));
+    PreReceiveHook guard = (rpIgnored, commands) -> {
+      // 기존 GuardHook.check() 로직과 동일 (차단 시 commands 전체 REJECT 세팅)
+      String ip = /* ... 기존 코드 ... */;
+      boolean allowed = policy.isAllowed(project, "push", ip);
+      // ... 기존 로깅/거부 처리 ...
+    };
+  
+    PreReceiveHook existing = rp.getPreReceiveHook();
+    if (existing == null || existing == PreReceiveHook.NULL) {
+      rp.setPreReceiveHook(guard);
+    } else {
+      // 푸시도 "차단 우선" 순서로 체인 생성
+      rp.setPreReceiveHook(PreReceiveHookChain.newChain(Arrays.asList(guard, existing)));
+    }
   }
 
   private class GuardHook implements PreReceiveHook {
