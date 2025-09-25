@@ -45,16 +45,26 @@
  <build>
   <finalName>ip-guard</finalName>
   <plugins>
-   <plugin>
-    <groupId>org.apache.maven.plugins</groupId>
-    <artifactId>maven-compiler-plugin</artifactId>
-    <version>3.14.0</version>
-    <configuration>
-     <release>${maven.compiler.release}</release>
-     <source>11</source>
-     <target>11</target>
-    </configuration>
-   </plugin>
+<plugin>
+  <groupId>org.apache.maven.plugins</groupId>
+  <artifactId>maven-compiler-plugin</artifactId>
+  <version>3.14.0</version>
+  <configuration>
+    <release>${maven.compiler.release}</release>
+    <source>11</source>
+    <target>11</target>
+
+    <!-- ✅ 애너테이션 프로세싱 완전 비활성화 -->
+    <proc>none</proc>
+    <annotationProcessorPaths/>
+
+    <!-- (선택) JDK 21+ 경고 억제: 필요 시 사용
+    <compilerArgs>
+      <arg>-Xlint:-options</arg>
+    </compilerArgs>
+    -->
+  </configuration>
+</plugin>
    <plugin>
     <artifactId>maven-jar-plugin</artifactId>
     <version>3.3.0</version>
