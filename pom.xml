@@ -3,54 +3,44 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
                              http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-
     <groupId>com.brody.gerrit</groupId>
     <artifactId>ip-guard</artifactId>
     <version>0.1</version>
     <packaging>jar</packaging>
 
     <properties>
+        <gerrit.version>3.5.1</gerrit.version>
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
-        <gerrit.version>3.5.1</gerrit.version>
-        <jgit.version>6.8.0.202309060745-r</jgit.version>
     </properties>
 
+    <repositories>
+        <repository>
+            <id>gerrit-releases</id>
+            <url>https://gerrit-review.googlesource.com/maven-repo/</url>
+        </repository>
+        <repository>
+            <id>eclipse-jgit</id>
+            <url>https://repo.eclipse.org/content/groups/releases/</url>
+        </repository>
+    </repositories>
+
     <dependencies>
-        <!-- Gerrit 서버 -->
         <dependency>
             <groupId>com.google.gerrit</groupId>
             <artifactId>gerrit-server</artifactId>
             <version>${gerrit.version}</version>
             <scope>provided</scope>
         </dependency>
-
-        <!-- JGit -->
         <dependency>
             <groupId>org.eclipse.jgit</groupId>
             <artifactId>org.eclipse.jgit</artifactId>
-            <version>${jgit.version}</version>
+            <version>6.7.0.202309080745-r</version>
         </dependency>
-
-        <!-- Guice DI -->
         <dependency>
             <groupId>com.google.inject</groupId>
             <artifactId>guice</artifactId>
-            <version>5.1.0</version>
+            <version>4.2.3</version>
         </dependency>
     </dependencies>
-
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.14.0</version>
-                <configuration>
-                    <source>${maven.compiler.source}</source>
-                    <target>${maven.compiler.target}</target>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
 </project>
