@@ -5,9 +5,7 @@ import javax.inject.Singleton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * 플러그인 로드시 즉시 생성되어 시작 로그를 남기는 eager singleton.
- */
+/** 플러그인 로드시 즉시 생성되어 시작 로그를 남기는 eager singleton. */
 @Singleton
 public class IpGuardBootstrap {
   private static final Logger log = LoggerFactory.getLogger(IpGuardBootstrap.class);
