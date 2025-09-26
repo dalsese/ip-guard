@@ -10,6 +10,5 @@ public class IpGuardModule extends AbstractModule {
     protected void configure() {
         DynamicSet.bind(binder(), UploadPackInitializer.class).to(IpGuardUploadPackInitializer.class);
         DynamicSet.bind(binder(), ReceivePackInitializer.class).to(IpGuardReceivePackInitializer.class);
-        bind(IpGuardPolicy.class).asEagerSingleton();
     }
 }
