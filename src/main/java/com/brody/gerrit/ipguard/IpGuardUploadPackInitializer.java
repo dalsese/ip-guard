@@ -9,12 +9,15 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.Collection;
 import java.util.Arrays;
+import java.util.logging.Logger;   // 추가
 import org.eclipse.jgit.transport.PreUploadHook;
 import org.eclipse.jgit.transport.PreUploadHookChain;
 import org.eclipse.jgit.transport.ServiceMayNotContinueException;
 import org.eclipse.jgit.transport.UploadPack;
 
 class IpGuardUploadPackInitializer implements UploadPackInitializer {
+  private static final Logger log = Logger.getLogger("ip-guard"); // 공용 로거
+
   private final IpGuardPolicy policy;
   private final AuditLogger audit;
   @Inject(optional = true) @RemotePeer private Provider<SocketAddress> remotePeer;
@@ -27,14 +30,21 @@ class IpGuardUploadPackInitializer implements UploadPackInitializer {
 
   @Override
   public void init(Project.NameKey project, UploadPack up) {
+    // === 디버깅 로그 추가 시작 ===
+    log.info("UploadPackInitializer.init called for project=" + project.get());
+    log.info("UploadPack existing hook before set = " + String.valueOf(up.getPreUploadHook()));
+    // === 디버깅 로그 추가 끝 ===
+
     PreUploadHook guard = new GuardHook(project);
 
     PreUploadHook existing = up.getPreUploadHook();
     if (existing == null || existing == PreUploadHook.NULL) {
       up.setPreUploadHook(guard);
+      log.info("UploadPack hook set to IpGuard GuardHook (no previous hook).");
     } else {
       // 우리 훅을 먼저 실행(차단 우선) → 통과 시 기존 훅 실행
       up.setPreUploadHook(PreUploadHookChain.newChain(Arrays.asList(guard, existing)));
+      log.info("UploadPack hook set to chain: [IpGuard GuardHook + existing]");
     }
   }
 
