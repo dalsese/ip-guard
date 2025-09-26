@@ -3,7 +3,7 @@ package com.brody.gerrit.ipguard;
 import com.google.gerrit.server.config.PluginConfigFactory;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import com.google.gerrit.server.config.PluginName;
+import com.google.gerrit.extensions.annotations.PluginName;
 import org.eclipse.jgit.lib.Config;
 
 import java.util.*;
