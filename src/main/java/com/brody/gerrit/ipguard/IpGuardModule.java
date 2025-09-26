@@ -8,15 +8,14 @@ import com.google.inject.AbstractModule;
 public class IpGuardModule extends AbstractModule {
   @Override
   protected void configure() {
-    // [A] Git 경로 초기화기 바인딩 (원래 코드 그대로)
-    DynamicSet.bind(binder(), UploadPackInitializer.class).to(IpGuardUploadPackInitializer.class);
-    DynamicSet.bind(binder(), ReceivePackInitializer.class).to(IpGuardReceivePackInitializer.class);
+    // Git 경로 초기화기 바인딩 (원래 코드 유지)
+    DynamicSet.bind(binder(), UploadPackInitializer.class)
+        .to(IpGuardUploadPackInitializer.class);
+    DynamicSet.bind(binder(), ReceivePackInitializer.class)
+        .to(IpGuardReceivePackInitializer.class);
 
-    // [B] 내부 의존성
+    // 내부 의존성 바인딩 (원래 코드 유지)
     bind(IpGuardPolicy.class);
     bind(AuditLogger.class);
-
-    // [C] 플러그인 시작 시 확실히 로그를 찍는 eager singleton
-    bind(IpGuardBootstrap.class).asEagerSingleton();
   }
 }
