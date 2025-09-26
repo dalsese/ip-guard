@@ -5,6 +5,7 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.google.gerrit.extensions.annotations.PluginName;
 import org.eclipse.jgit.lib.Config;
+import com.google.gerrit.entities.Project;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -37,5 +38,9 @@ public class IpGuardPolicy {
     if (username == null || username.isBlank() || clientIp == null) return false;
     Set<String> ips = allowMap.get(username);
     return ips != null && ips.contains(clientIp);
+  }
+  
+  public boolean isAllowed(Project.NameKey project, String username, String clientIp) {
+    return isAllowed(username, clientIp);
   }
 }
