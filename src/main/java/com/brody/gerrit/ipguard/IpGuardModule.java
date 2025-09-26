@@ -6,17 +6,10 @@ import com.google.gerrit.server.git.UploadPackInitializer;
 import com.google.inject.AbstractModule;
 
 public class IpGuardModule extends AbstractModule {
-  @Override
-  protected void configure() {
-    DynamicSet.bind(binder(), UploadPackInitializer.class)
-        .to(IpGuardUploadPackInitializer.class);
-    DynamicSet.bind(binder(), ReceivePackInitializer.class)
-        .to(IpGuardReceivePackInitializer.class);
-
-    bind(IpGuardPolicy.class);
-    bind(AuditLogger.class);
-
-    // ★ 플러그인 로드시 반드시 한 줄 로그가 찍히도록
-    bind(IpGuardBootstrap.class).asEagerSingleton();
-  }
+    @Override
+    protected void configure() {
+        DynamicSet.bind(binder(), UploadPackInitializer.class).to(IpGuardUploadPackInitializer.class);
+        DynamicSet.bind(binder(), ReceivePackInitializer.class).to(IpGuardReceivePackInitializer.class);
+        bind(IpGuardPolicy.class).asEagerSingleton();
+    }
 }
