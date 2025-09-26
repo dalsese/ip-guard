@@ -1,34 +1,28 @@
 package com.brody.gerrit.ipguard;
 
-import com.google.gerrit.entities.Project;
-
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.IOException;
 import java.net.InetAddress;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.*;
+import java.util.HashSet;
+import java.util.Set;
 
 public class IpGuardPolicy {
-    private final Map<String, List<String>> repoIpMap = new HashMap<>();
+
+    private final Set<String> allowedIps = new HashSet<>();
 
     public IpGuardPolicy() {
-        try {
-            List<String> lines = Files.readAllLines(Paths.get("conf/allowed-ips.conf"));
-            for (String line : lines) {
-                if (line.trim().isEmpty() || line.startsWith("#")) continue;
-                String[] parts = line.split("=");
-                if (parts.length != 2) continue;
-                String repo = parts[0].trim();
-                List<String> ips = Arrays.asList(parts[1].trim().split(","));
-                repoIpMap.put(repo, ips);
+        try (BufferedReader br = new BufferedReader(new FileReader("conf/allowed-ips.conf"))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                allowedIps.add(line.trim());
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    public boolean isAllowed(Project.NameKey project, InetAddress ip) {
-        List<String> allowed = repoIpMap.getOrDefault(project.get(), Collections.emptyList());
-        return allowed.contains(ip.getHostAddress());
+    public boolean isAllowed(String ip, InetAddress addr) {
+        return allowedIps.contains(ip);
     }
 }
