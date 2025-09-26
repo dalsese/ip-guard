@@ -2,25 +2,26 @@ package com.brody.gerrit.ipguard;
 
 import com.google.gerrit.server.git.UploadPack;
 import com.google.gerrit.server.git.UploadPackInitializer;
-import com.google.gerrit.entities.Project;
-import com.google.gerrit.server.RemotePeer;
 import com.google.inject.Inject;
 import java.net.InetAddress;
 
 public class IpGuardUploadPackInitializer implements UploadPackInitializer {
+
     private final IpGuardPolicy policy;
+    private final AuditLogger audit;
 
     @Inject
-    IpGuardUploadPackInitializer(IpGuardPolicy policy) {
+    IpGuardUploadPackInitializer(IpGuardPolicy policy, AuditLogger audit) {
         this.policy = policy;
+        this.audit = audit;
     }
 
     @Override
-    public void init(Project.NameKey project, UploadPack up) {
-        RemotePeer peer = up.getPeer();
-        InetAddress remoteIp = peer.getRemoteAddress();
-        if (!policy.isAllowed(project, remoteIp)) {
-            throw new SecurityException("IP not allowed: " + remoteIp.getHostAddress());
+    public void init(com.google.gerrit.entities.Project.NameKey project, UploadPack uploadPack) {
+        String remoteIp = uploadPack.getPeer().getAddress().getAddress().getHostAddress();
+        if (!policy.isAllowed(remoteIp, uploadPack.getPeer().getAddress().getAddress())) {
+            throw new SecurityException("IP " + remoteIp + " is not allowed to access this repository.");
         }
+        audit.log(remoteIp, project.get());
     }
 }
