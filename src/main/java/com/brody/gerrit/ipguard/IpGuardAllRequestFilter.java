@@ -10,6 +10,8 @@ import org.slf4j.LoggerFactory;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;   // ★ 표준 서블릿 시그니처
+import javax.servlet.ServletResponse;  // ★ 표준 서블릿 시그니처
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -27,35 +29,44 @@ public class IpGuardAllRequestFilter extends AllRequestFilter {
     this.policy = policy;
   }
 
-  // ★ 반드시 HTTP 시그니처를 오버라이드해야 함 (AllRequestFilter의 추상 메서드)
+  // ★ 서블릿 표준 doFilter를 정확히 오버라이드해야 컴파일이 통과함
   @Override
-  public void doFilter(HttpServletRequest req, HttpServletResponse rsp, FilterChain chain)
+  public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain)
       throws IOException, ServletException {
 
     if (!policy.isEnforceWeb()) {
-      chain.doFilter(req, rsp);
+      chain.doFilter(req, res);
       return;
     }
 
-    // 로그인 전(익명) 요청은 패스
+    // HTTP 요청이 아니면 패스
+    if (!(req instanceof HttpServletRequest) || !(res instanceof HttpServletResponse)) {
+      chain.doFilter(req, res);
+      return;
+    }
+
+    HttpServletRequest httpReq = (HttpServletRequest) req;
+    HttpServletResponse httpRes = (HttpServletResponse) res;
+
+    // 인증 전(익명) 요청은 패스
     CurrentUser cu = currentUser.get();
     if (cu == null || !cu.isIdentifiedUser()) {
-      chain.doFilter(req, rsp);
+      chain.doFilter(req, res);
       return;
     }
 
     String username = cu.getUserName().orElse(null);
-    String ip = extractClientIp(req);
+    String ip = extractClientIp(httpReq);
 
     boolean ok = policy.isAllowed(username, ip);
     if (!ok) {
-      log.warn("[ip-guard] deny web request: user={} ip={} uri={}", username, ip, req.getRequestURI());
-      rsp.sendError(HttpServletResponse.SC_FORBIDDEN,
+      log.warn("[ip-guard] deny web request: user={} ip={} uri={}", username, ip, httpReq.getRequestURI());
+      httpRes.sendError(HttpServletResponse.SC_FORBIDDEN,
           "Access denied by ip-guard: user '" + username + "' is not allowed from IP " + ip);
       return;
     }
 
-    chain.doFilter(req, rsp);
+    chain.doFilter(req, res);
   }
 
   private static String extractClientIp(HttpServletRequest req) {
