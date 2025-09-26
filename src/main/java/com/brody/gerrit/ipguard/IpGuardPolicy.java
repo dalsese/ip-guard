@@ -1,28 +1,21 @@
 package com.brody.gerrit.ipguard;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.IOException;
 import java.net.InetAddress;
-import java.util.HashSet;
-import java.util.Set;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
 
 public class IpGuardPolicy {
 
-    private final Set<String> allowedIps = new HashSet<>();
+    private final List<String> allowedIps;
 
-    public IpGuardPolicy() {
-        try (BufferedReader br = new BufferedReader(new FileReader("conf/allowed-ips.conf"))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                allowedIps.add(line.trim());
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    public IpGuardPolicy(Path confFile) throws IOException {
+        allowedIps = Files.readAllLines(confFile);
     }
 
-    public boolean isAllowed(String ip, InetAddress addr) {
+    public boolean isAllowed(InetAddress addr) {
+        String ip = addr.getHostAddress();
         return allowedIps.contains(ip);
     }
 }
